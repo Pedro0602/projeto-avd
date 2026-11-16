@@ -23,8 +23,6 @@ projeto-avd/
 ├─ README.md
 ├─ requirements.txt
 ├─ CONTRIBUICAO.md            # matriz de contribuição
-├─ docs/
-│  └─ DECLARACAO_IA.pdf       # declaração de uso de IA assinada por todos
 ├─ data/
 │  ├─ parte_comum/            # ObesityDataSet_raw_and_data_sinthetic.csv
 │  └─ parte_especifica/       # Titanic
@@ -85,4 +83,3 @@ streamlit run src/parte_especifica/dashboard.py
 ## Uso de IA
 
 Trechos de código feitos com apoio de IA estão marcados com `# [IA] <ferramenta> – <finalidade>`.
-A declaração assinada por todos está em `docs/DECLARACAO_IA.pdf`.
