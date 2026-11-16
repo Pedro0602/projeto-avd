@@ -75,6 +75,11 @@ O CSV é salvo em `data/parte_comum/`.
 jupyter notebook notebooks/parte_comum/eda.ipynb
 jupyter notebook notebooks/parte_comum/kmeans_metricas.ipynb
 
+# Parte Comum — alternativa por linha de comando
+python -m src.parte_comum.kmeans --modo livre --out ./out/parte_comum/          # k pelo cotovelo
+python -m src.parte_comum.kmeans --modo livre --k 4 --out ./out/parte_comum/    # k escolhido pelo grupo
+python -m src.parte_comum.kmeans --modo fixo --out ./out/parte_comum/           # k = 7 classes
+
 # Parte Específica
 jupyter notebook src/parte_especifica/eda.ipynb
 streamlit run src/parte_especifica/dashboard.py

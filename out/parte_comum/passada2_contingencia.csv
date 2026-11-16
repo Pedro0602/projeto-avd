@@ -1,0 +1,8 @@
+cluster,Insufficient_Weight,Normal_Weight,Overweight_Level_I,Overweight_Level_II,Obesity_Type_I,Obesity_Type_II,Obesity_Type_III
+0,53,49,64,31,54,29,0
+1,125,83,65,52,38,0,0
+2,0,0,5,4,23,84,137
+3,84,102,69,57,55,0,0
+4,7,26,9,20,7,5,187
+5,0,16,34,63,95,126,0
+6,3,11,44,63,79,53,0
