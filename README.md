@@ -66,7 +66,8 @@ python -m src.parte_comum.baixar_dados
 
 O CSV é salvo em `data/parte_comum/`.
 
-**Parte Específica (Titanic):** baixar o CSV pelo link do Kaggle acima (exige login) e salvar em `data/parte_especifica/`.
+**Parte Específica (Titanic):** já versionado em `data/parte_especifica/Titanic-Dataset.csv`.
+O notebook `src/parte_especifica/eda.ipynb` gera `titanic_tratado.csv` (dataset tratado, usado pelo dashboard).
 
 ## Execução
 
