@@ -86,6 +86,28 @@ jupyter notebook src/parte_especifica/eda.ipynb
 streamlit run src/parte_especifica/dashboard.py
 ```
 
+## Dashboard
+
+```bash
+streamlit run src/parte_especifica/dashboard.py
+```
+
+| Página | Conteúdo |
+|---|---|
+| Visão geral | Pergunta de pesquisa, público-alvo e indicadores do recorte filtrado |
+| Exploração | Visualizações exploratórias do grupo + explorador livre (escolha de variáveis e eixos) |
+| Comparação | Dois grupos de passageiros lado a lado |
+| Explanatória | Storytelling e visualizações explanatórias |
+| Relatório | Gráficos adicionados pelo usuário, exportação em HTML |
+| K-Means (Obesity) | Parte Comum: cotovelo, animação de transição entre as passadas, matrizes e métricas |
+
+Os filtros da barra lateral (classe, sexo, porto, idade) valem para todas as páginas do Titanic.
+
+**Onde o grupo edita o conteúdo:**
+- `src/parte_especifica/graficos.py` — registro das 4 visualizações exploratórias e das 2 explanatórias
+- `src/parte_especifica/notas/*.md` — notas analíticas, pergunta de pesquisa, público-alvo e storytelling
+  (apagar a linha `<!-- PENDENTE ... -->` ao preencher)
+
 ## Uso de IA
 
 Trechos de código feitos com apoio de IA estão marcados com `# [IA] <ferramenta> – <finalidade>`.
