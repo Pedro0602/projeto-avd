@@ -5,6 +5,7 @@ Uso como script:
     python -m src.parte_comum.kmeans --modo livre --out ./out/parte_comum/
     python -m src.parte_comum.kmeans --modo livre --k 4 --out ./out/parte_comum/
     python -m src.parte_comum.kmeans --modo fixo --out ./out/parte_comum/
+    python -m src.parte_comum.kmeans --modo fixo --variaveis todas --out ./out/parte_comum/
 """
 from __future__ import annotations
 
@@ -22,6 +23,17 @@ CAMINHO_CSV = RAIZ / "data" / "parte_comum" / "ObesityDataSet_raw_and_data_sinth
 
 ALVO = "NObeyesdad"
 COLUNAS_NUMERICAS = ["Age", "Height", "Weight", "FCVC", "NCP", "CH2O", "FAF", "TUE"]
+COLUNAS_BINARIAS = ["Gender", "family_history_with_overweight", "FAVC", "SMOKE", "SCC"]
+COLUNAS_ORDINAIS = ["CAEC", "CALC"]
+COLUNA_NOMINAL = "MTRANS"
+MAPA_BINARIO = {"no": 0, "yes": 1, "Female": 0, "Male": 1}
+MAPA_FREQUENCIA = {"no": 0, "Sometimes": 1, "Frequently": 2, "Always": 3}
+
+# Conjuntos de variáveis disponíveis para o agrupamento (a escolha é do grupo)
+CONJUNTOS = {
+    "numericas": "Só as 8 variáveis numéricas",
+    "todas": "Numéricas + categóricas codificadas",
+}
 
 # Ordem das classes do menor para o maior nível de peso (usada nas tabelas e gráficos)
 ORDEM_CLASSES = [
@@ -51,6 +63,34 @@ def padronizar(df: pd.DataFrame, colunas: list[str] = COLUNAS_NUMERICAS):
     scaler = StandardScaler()
     X = scaler.fit_transform(df[colunas])
     return pd.DataFrame(X, columns=colunas, index=df.index), scaler
+
+
+def codificar(df: pd.DataFrame, conjunto: str = "numericas") -> pd.DataFrame:
+    """Monta a matriz de entrada do K-Means (sem a classe real).
+
+    - "numericas": as 8 colunas numéricas
+    - "todas": numéricas + binárias em 0/1 + CAEC e CALC em 0 a 3 + one-hot de MTRANS
+    """
+    if conjunto not in CONJUNTOS:
+        raise ValueError(f"Conjunto desconhecido: {conjunto}. Opções: {list(CONJUNTOS)}")
+    base = df[COLUNAS_NUMERICAS].copy()
+    if conjunto == "numericas":
+        return base
+    for col in COLUNAS_BINARIAS:
+        base[col] = df[col].map(MAPA_BINARIO)
+    for col in COLUNAS_ORDINAIS:
+        base[col] = df[col].map(MAPA_FREQUENCIA)
+    indicadoras = pd.get_dummies(df[COLUNA_NOMINAL], prefix=COLUNA_NOMINAL, dtype=int)
+    base = pd.concat([base, indicadoras], axis=1)
+    if base.isna().any().any():
+        raise ValueError("Há categorias sem codificação.")
+    return base
+
+
+def preparar_X(df: pd.DataFrame, conjunto: str = "numericas"):
+    """Codifica o conjunto escolhido e aplica z-score em todas as colunas."""
+    codificado = codificar(df, conjunto)
+    return padronizar(codificado, list(codificado.columns))
 
 
 # ----------------------------------------------------------------------------
@@ -172,6 +212,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="K-Means sobre o dataset Obesity")
     parser.add_argument("--modo", choices=["livre", "fixo"], required=True)
     parser.add_argument("--k", type=int, help="k da passada livre (padrão: sugestão do cotovelo)")
+    parser.add_argument("--variaveis", choices=list(CONJUNTOS), default="numericas",
+                        help="variáveis usadas no agrupamento")
     parser.add_argument("--out", default=str(RAIZ / "out" / "parte_comum"))
     args = parser.parse_args()
 
@@ -179,11 +221,12 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
 
     df = carregar_dados()
-    X, _ = padronizar(df)
+    X, _ = preparar_X(df, args.variaveis)
+    sufixo = "" if args.variaveis == "numericas" else f"_{args.variaveis}"
 
     if args.modo == "livre":
         curva = curva_cotovelo(X)
-        curva.to_csv(out / "cotovelo.csv", index=False)
+        curva.to_csv(out / f"cotovelo{sufixo}.csv", index=False)
         k = args.k or sugerir_k_cotovelo(curva)
         print(curva.to_string(index=False))
         print(f"\nk usado na passada livre: {k}")
@@ -192,7 +235,7 @@ def main() -> None:
         print(f"k fixo (número de classes reais): {k}")
 
     res = avaliar_passada(df, X, k)
-    prefixo = f"passada_{args.modo}"
+    prefixo = f"passada_{args.modo}{sufixo}"
     res["contingencia"].to_csv(out / f"{prefixo}_contingencia.csv")
     res["matriz"].to_csv(out / f"{prefixo}_matriz_confusao.csv")
     res["por_classe"].to_csv(out / f"{prefixo}_metricas_por_classe.csv")
