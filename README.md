@@ -5,7 +5,7 @@ Análise e Visualização de Dados (AVD) — 2026.2
 | Parte | Dataset |
 |---|---|
 | Comum | [Obesity (UCI 544)](https://archive.ics.uci.edu/dataset/544) |
-| Específica | [Titanic (Kaggle)](https://www.kaggle.com/datasets/qurat01/dt-titanic-dataset) |
+| Específica | [Spaceship Titanic (Kaggle)](https://www.kaggle.com/competitions/spaceship-titanic/data), licença CC BY 4.0 |
 
 ## Integrantes
 
@@ -25,7 +25,7 @@ projeto-avd/
 ├─ CONTRIBUICAO.md            # matriz de contribuição
 ├─ data/
 │  ├─ parte_comum/            # ObesityDataSet_raw_and_data_sinthetic.csv
-│  └─ parte_especifica/       # Titanic
+│  └─ parte_especifica/       # Spaceship Titanic (script de preparação)
 ├─ out/
 │  ├─ parte_comum/
 │  └─ parte_especifica/
@@ -66,8 +66,17 @@ python -m src.parte_comum.baixar_dados
 
 O CSV é salvo em `data/parte_comum/`.
 
-**Parte Específica (Titanic):** já versionado em `data/parte_especifica/Titanic-Dataset.csv`.
-O notebook `src/parte_especifica/eda.ipynb` gera `titanic_tratado.csv` (dataset tratado, usado pelo dashboard).
+**Parte Específica (Spaceship Titanic):** as regras da competição não permitem redistribuir os dados, por isso o CSV não fica no repositório.
+
+1. Entre em https://www.kaggle.com/competitions/spaceship-titanic/data e aceite as regras
+2. Baixe o ZIP (Download All)
+3. Rode:
+
+```bash
+python -m src.parte_especifica.preparar_dados caminho/para/spaceship-titanic.zip
+```
+
+O notebook `src/parte_especifica/eda.ipynb` gera `spaceship_tratado.csv` (dataset tratado). Sem esse arquivo, o dashboard aplica o tratamento padrão.
 
 ## Execução
 
@@ -101,7 +110,7 @@ streamlit run src/parte_especifica/dashboard.py
 | Relatório | Gráficos adicionados pelo usuário, exportação em HTML |
 | K-Means (Obesity) | Parte Comum: cotovelo, animação de transição entre as passadas, matrizes e métricas |
 
-Os filtros da barra lateral (classe, sexo, porto, idade) valem para todas as páginas do Titanic.
+Os filtros da barra lateral (planeta, sono criogênico, destino, VIP, idade) valem para todas as páginas do Spaceship Titanic.
 
 **Onde o grupo edita o conteúdo:**
 - `src/parte_especifica/graficos.py` — registro das 4 visualizações exploratórias e das 2 explanatórias
