@@ -1,5 +1,5 @@
-# [IA] Claude – carregamento, variáveis derivadas e opções de tratamento do Titanic
-"""Funções de dados da Parte Específica (Titanic), usadas pelo notebook de EDA e pelo dashboard."""
+# [IA] Claude – carregamento, variáveis derivadas e opções de tratamento do Spaceship Titanic
+"""Funções de dados da Parte Específica (Spaceship Titanic), usadas pelo notebook e pelo dashboard."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,72 +8,137 @@ import numpy as np
 import pandas as pd
 
 RAIZ = Path(__file__).resolve().parents[2]
-CAMINHO_BRUTO = RAIZ / "data" / "parte_especifica" / "Titanic-Dataset.csv"
-CAMINHO_TRATADO = RAIZ / "data" / "parte_especifica" / "titanic_tratado.csv"
+CAMINHO_BRUTO = RAIZ / "data" / "parte_especifica" / "spaceship_train.csv"
+CAMINHO_TRATADO = RAIZ / "data" / "parte_especifica" / "spaceship_tratado.csv"
 
-ALVO = "Survived"
-
-# Agrupamento dos pronomes de tratamento extraídos do nome
-MAPA_TITULOS = {
-    "Mr": "Mr", "Mrs": "Mrs", "Miss": "Miss", "Master": "Master",
-    "Mlle": "Miss", "Ms": "Miss", "Mme": "Mrs",
-}
+ALVO = "Transported"
+GASTOS = ["RoomService", "FoodCourt", "ShoppingMall", "Spa", "VRDeck"]
+COLUNAS_COM_FALTANTES = ["HomePlanet", "CryoSleep", "Cabin", "Destination", "Age", "VIP", *GASTOS, "Name"]
+DESCONHECIDO = "Desconhecido"
 
 METODOS_AGE = {
     "mediana_global": "Mediana geral de Age",
-    "mediana_classe_sexo": "Mediana de Age por Pclass × Sex",
-    "mediana_titulo": "Mediana de Age por Title",
+    "mediana_planeta": "Mediana de Age por HomePlanet",
+    "mediana_planeta_cryo": "Mediana de Age por HomePlanet × CryoSleep",
 }
+
+FAIXAS_IDADE = ["0-12", "13-17", "18-25", "26-40", "41-60", "61+"]
 
 
 def carregar_bruto(caminho: Path | str = CAMINHO_BRUTO) -> pd.DataFrame:
+    if not Path(caminho).exists():
+        raise FileNotFoundError(
+            "Dataset não encontrado. Baixe o ZIP no Kaggle e rode: "
+            "python -m src.parte_especifica.preparar_dados <caminho do spaceship-titanic.zip>"
+        )
     return pd.read_csv(caminho)
 
 
+def _faixa_idade(idade: pd.Series) -> pd.Series:
+    faixa = pd.cut(idade, bins=[-1, 12, 17, 25, 40, 60, 200], labels=FAIXAS_IDADE)
+    return faixa.astype(object).where(faixa.notna(), DESCONHECIDO)
+
+
 def adicionar_derivadas(df: pd.DataFrame) -> pd.DataFrame:
-    """Cria variáveis derivadas sem alterar as originais."""
+    """Cria variáveis derivadas e indicadores de ausência, sem alterar as colunas originais."""
     df = df.copy()
-    titulo = df["Name"].str.extract(r",\s*([^\.]+)\.", expand=False).str.strip()
-    df["Title"] = titulo.map(MAPA_TITULOS).fillna("Raro")
-    df["FamilySize"] = df["SibSp"] + df["Parch"] + 1
-    df["Deck"] = df["Cabin"].str[0].fillna("Desconhecido")
-    df["Cabin_known"] = df["Cabin"].notna().astype(int)
-    df["Age_missing"] = df["Age"].isna().astype(int)
-    df["TicketGroupSize"] = df.groupby("Ticket")["Ticket"].transform("count")
+    df["Group"] = df["PassengerId"].str.split("_").str[0]
+    df["GroupSize"] = df.groupby("Group")["Group"].transform("size")
+    df["Solo"] = np.where(df["GroupSize"] == 1, "Sim", "Não")
+
+    cabine = df["Cabin"].str.split("/", expand=True)
+    df["Deck"] = cabine[0].fillna(DESCONHECIDO)
+    df["CabinNum"] = pd.to_numeric(cabine[1], errors="coerce")
+    df["Side"] = cabine[2].map({"P": "Bombordo", "S": "Estibordo"}).fillna(DESCONHECIDO)
+
+    for col in COLUNAS_COM_FALTANTES:
+        df[f"Falt_{col}"] = df[col].isna().astype(int)
+    df["N_faltantes"] = df[[f"Falt_{c}" for c in COLUNAS_COM_FALTANTES]].sum(axis=1)
+
+    df["TotalSpend"] = df[GASTOS].sum(axis=1, min_count=1)
+    df["AgeGroup"] = _faixa_idade(df["Age"])
     return df
+
+
+def aplicar_regras_logicas(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, int]]:
+    """Preenche faltantes deduzíveis das outras colunas. Retorna (df, contagem por regra).
+
+    - CryoSleep = True -> gastos ausentes = 0 (passageiro confinado à cabine)
+    - Age <= 12 -> gastos ausentes = 0 (nenhuma criança registrada tem gasto)
+    - CryoSleep ausente e algum gasto > 0 -> CryoSleep = False
+    - HomePlanet ausente -> planeta de outro integrante do mesmo grupo, quando conhecido
+    """
+    df = df.copy()
+    contagem: dict[str, int] = {}
+
+    cryo = df["CryoSleep"].eq(True)
+    contagem["Gastos = 0 por CryoSleep"] = int(df.loc[cryo, GASTOS].isna().sum().sum())
+    df.loc[cryo, GASTOS] = df.loc[cryo, GASTOS].fillna(0)
+
+    crianca = df["Age"].le(12)
+    contagem["Gastos = 0 por idade <= 12"] = int(df.loc[crianca, GASTOS].isna().sum().sum())
+    df.loc[crianca, GASTOS] = df.loc[crianca, GASTOS].fillna(0)
+
+    gastou = df[GASTOS].fillna(0).sum(axis=1) > 0
+    regra = df["CryoSleep"].isna() & gastou
+    contagem["CryoSleep = False por ter gasto"] = int(regra.sum())
+    df["CryoSleep"] = df["CryoSleep"].astype(object)
+    df.loc[regra, "CryoSleep"] = False
+
+    planeta_grupo = df.groupby("Group")["HomePlanet"].transform("first")
+    regra = df["HomePlanet"].isna() & planeta_grupo.notna()
+    contagem["HomePlanet pelo grupo"] = int(regra.sum())
+    df.loc[regra, "HomePlanet"] = planeta_grupo[regra]
+    return df, contagem
 
 
 def imputar_age(df: pd.DataFrame, metodo: str) -> pd.Series:
     """Retorna Age com os faltantes preenchidos pelo método escolhido (ver METODOS_AGE)."""
+    geral = df["Age"].median()
     if metodo == "mediana_global":
-        return df["Age"].fillna(df["Age"].median())
-    if metodo == "mediana_classe_sexo":
-        return df["Age"].fillna(df.groupby(["Pclass", "Sex"])["Age"].transform("median"))
-    if metodo == "mediana_titulo":
-        return df["Age"].fillna(df.groupby("Title")["Age"].transform("median"))
-    raise ValueError(f"Método desconhecido: {metodo}. Opções: {list(METODOS_AGE)}")
+        return df["Age"].fillna(geral)
+    if metodo == "mediana_planeta":
+        chaves = [df["HomePlanet"].fillna(DESCONHECIDO)]
+    elif metodo == "mediana_planeta_cryo":
+        chaves = [df["HomePlanet"].fillna(DESCONHECIDO), df["CryoSleep"].astype(object).fillna(DESCONHECIDO).astype(str)]
+    else:
+        raise ValueError(f"Método desconhecido: {metodo}. Opções: {list(METODOS_AGE)}")
+    return df["Age"].fillna(df.groupby(chaves)["Age"].transform("median")).fillna(geral)
 
 
-def tratar(df: pd.DataFrame, metodo_age: str, embarked: str = "moda") -> pd.DataFrame:
+def tratar(df: pd.DataFrame, metodo_age: str, categoricas: str = "desconhecido",
+           regras: bool = True) -> pd.DataFrame:
     """Aplica o tratamento escolhido pelo grupo. Nenhuma linha é removida.
 
-    - Age: imputação pelo `metodo_age` (a coluna Age_missing guarda quem foi imputado)
-    - Cabin: não é imputada; Deck = "Desconhecido" e Cabin_known = 0
-    - Embarked: "moda" (porto mais frequente) ou "desconhecido" (categoria própria)
+    - regras=True: aplica primeiro as deduções de `aplicar_regras_logicas`
+    - Age: imputação por `metodo_age` (Falt_Age guarda quem foi imputado)
+    - Gastos restantes: mediana de cada coluna
+    - HomePlanet, CryoSleep, Destination, VIP: "desconhecido" (categoria própria) ou "moda"
+    - Cabin: não é imputada; Deck e Side ficam "Desconhecido"
     """
-    out = adicionar_derivadas(df) if "Title" not in df.columns else df.copy()
+    if categoricas not in ("desconhecido", "moda"):
+        raise ValueError("categoricas deve ser 'desconhecido' ou 'moda'")
+    out = adicionar_derivadas(df) if "Group" not in df.columns else df.copy()
+    if regras:
+        out, _ = aplicar_regras_logicas(out)
     out["Age"] = imputar_age(out, metodo_age)
-    if embarked == "moda":
-        out["Embarked"] = out["Embarked"].fillna(out["Embarked"].mode()[0])
-    elif embarked == "desconhecido":
-        out["Embarked"] = out["Embarked"].fillna("Desconhecido")
-    else:
-        raise ValueError("embarked deve ser 'moda' ou 'desconhecido'")
+    out[GASTOS] = out[GASTOS].fillna(out[GASTOS].median())
+
+    for col in ("HomePlanet", "CryoSleep", "Destination", "VIP"):
+        valor = out[col].mode()[0] if categoricas == "moda" else DESCONHECIDO
+        out[col] = out[col].astype(object).where(out[col].notna(), valor)
+    for col in ("CryoSleep", "VIP"):
+        out[col] = out[col].map({True: "Sim", False: "Não", DESCONHECIDO: DESCONHECIDO})
+
+    out["TotalSpend"] = out[GASTOS].sum(axis=1)
+    out["AnySpend"] = np.where(out["TotalSpend"] > 0, "Sim", "Não")
+    out["AgeGroup"] = _faixa_idade(out["Age"])
+    out[ALVO] = out[ALVO].astype(int)
     return out
 
 
 def carregar_tratado(caminho: Path | str = CAMINHO_TRATADO) -> pd.DataFrame:
-    return pd.read_csv(caminho)
+    return pd.read_csv(caminho, dtype={"Group": str}, keep_default_na=True, na_values=[""])
 
 
 def limites_iqr(s: pd.Series, fator: float = 1.5) -> tuple[float, float]:
