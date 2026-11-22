@@ -5,16 +5,17 @@ que vão para o dashboard (e para o relatório). Cada uma aparece com a sua nota
 lida de `notas/<nota>.md`.
 
 Construtores disponíveis em dash_comum (todos devolvem uma figura Plotly com título, eixos e legenda):
-    histograma(df, x, por_sobrevivencia=True, percentual=False, titulo=None)
-    barras_contagem(df, x, por_sobrevivencia=True, titulo=None)
-    taxa_sobrevivencia(df, x, destacar=None, titulo=None)      # destacar=[...] pinta só essas barras
+    histograma(df, x, por_situacao=True, percentual=False, log_y=False, titulo=None)
+    barras_contagem(df, x, por_situacao=True, titulo=None)
+    taxa_transporte(df, x, destacar=None, titulo=None)      # destacar=[...] pinta só essas barras
     taxa_dois_fatores(df, linhas, colunas, titulo=None)
     dispersao(df, x, y, log_y=False, titulo=None)
-    boxplot(df, x, y, por_sobrevivencia=True, log_y=False, titulo=None)
+    boxplot(df, x, y, por_situacao=True, log_y=False, titulo=None)
 Também dá para escrever uma função própria que receba o DataFrame e devolva uma figura Plotly.
 
-Colunas do DataFrame: Survived, Sobrevivencia, Pclass, Sex, Age, SibSp, Parch, Fare, Embarked,
-Title, FamilySize, Deck, Cabin_known, Age_missing, TicketGroupSize, Name, Ticket, Cabin.
+Colunas do DataFrame: Transported, Situacao, HomePlanet, CryoSleep, Destination, Age, AgeGroup, VIP,
+RoomService, FoodCourt, ShoppingMall, Spa, VRDeck, TotalSpend, AnySpend, GroupSize, Solo, Deck,
+CabinNum, Side.
 
 Formato de cada entrada:
     Grafico("exp_1", lambda df: <construtor>(df, ...))
@@ -27,7 +28,7 @@ from src.parte_especifica.dash_comum import (  # noqa: F401
     dispersao,
     histograma,
     taxa_dois_fatores,
-    taxa_sobrevivencia,
+    taxa_transporte,
 )
 
 EXPLORATORIAS: list[Grafico] = [
