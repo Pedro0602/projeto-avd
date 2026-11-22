@@ -14,17 +14,17 @@ KS = list(range(2, 11))
 
 
 @st.cache_data
-def preparar():
+def preparar(conjunto: str = "numericas"):
     df = km.carregar_dados()
-    X, _ = km.padronizar(df)
+    X, _ = km.preparar_X(df, conjunto)
     proj, var = km.projetar_pca(X)
     curva = km.curva_cotovelo(X, ks=KS)
     return df, X, proj, var, curva
 
 
 @st.cache_data
-def passada(k: int) -> dict:
-    df, X, *_ = preparar()
+def passada(k: int, conjunto: str = "numericas") -> dict:
+    df, X, *_ = preparar(conjunto)
     res = km.avaliar_passada(df, X, k)
     res.pop("modelo")
     return res
@@ -46,10 +46,10 @@ def fig_cotovelo(curva: pd.DataFrame, k_escolhido: int, k_sugerido: int) -> go.F
     return fig
 
 
-def fig_transicao(sequencia: list[int | str]) -> go.Figure:
+def fig_transicao(sequencia: list[int | str], conjunto: str = "numericas") -> go.Figure:
     """Animação: cada ponto pintado pela classe majoritária do seu cluster, k a k,
     terminando nas classes reais. As posições (PCA) são fixas; só as cores mudam."""
-    df, _, proj, var, _ = preparar()
+    df, _, proj, var, _ = preparar(conjunto)
     reais = df[km.ALVO].to_numpy()
 
     def quadro(passo):
@@ -57,7 +57,7 @@ def fig_transicao(sequencia: list[int | str]) -> go.Figure:
             classes = reais
             nome = "Classes reais"
         else:
-            res = passada(passo)
+            res = passada(passo, conjunto)
             classes = pd.Series(res["clusters"]).map(res["mapa"]).to_numpy()
             nome = f"k = {passo}"
         cores = [CORES_CLASSE[c] for c in classes]

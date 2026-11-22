@@ -6,13 +6,18 @@ from src.parte_comum import kmeans as km
 from src.parte_especifica import dash_kmeans as dk
 
 st.title("Parte comum — K-Means sobre Obesity", anchor=False)
-st.caption("2111 pessoas · 8 variáveis numéricas padronizadas (z-score) · 7 classes reais de NObeyesdad")
 
-df, X, proj, var, curva = dk.preparar()
+conjunto = st.segmented_control(
+    "Variáveis usadas no agrupamento", list(km.CONJUNTOS), default="numericas", key="pc_conjunto",
+    format_func=km.CONJUNTOS.get, required=True,
+)
+
+df, X, proj, var, curva = dk.preparar(conjunto)
+st.caption(f"2111 pessoas · {X.shape[1]} colunas de entrada padronizadas (z-score) · 7 classes reais de NObeyesdad")
 k_sugerido = km.sugerir_k_cotovelo(curva)
 K_FIXO = df[km.ALVO].nunique()
 
-k_livre = st.slider("k da Passada 1 (livre)", 2, 10, value=k_sugerido, key="k_livre",
+k_livre = st.slider("k da Passada 1 (livre)", 2, 10, value=k_sugerido, key=f"k_livre_{conjunto}",
                     help=f"Sugestão automática pelo cotovelo: k = {k_sugerido}. A escolha final é do grupo.")
 
 secao = st.segmented_control(
@@ -42,14 +47,14 @@ elif secao == "Transição entre passadas":
     if sequencia_nome and sequencia_nome.startswith("k ="):
         sequencia = [*dk.KS, "real"]
     else:
-        sequencia = [k_livre, K_FIXO, "real"]
-    st.plotly_chart(dk.fig_transicao(sequencia), key="transicao",
+        sequencia = [*dict.fromkeys([k_livre, K_FIXO]), "real"]
+    st.plotly_chart(dk.fig_transicao(sequencia, conjunto), key="transicao",
                     alt="Animação dos agrupamentos do K-Means projetados em PCA")
     st.caption("Cada ponto é uma pessoa, na mesma posição em todas as etapas (projeção PCA). "
                "A cor é a classe majoritária do cluster em que a pessoa caiu; na última etapa, a classe real.")
 
 else:
-    res_livre, res_fixo = dk.passada(k_livre), dk.passada(K_FIXO)
+    res_livre, res_fixo = dk.passada(k_livre, conjunto), dk.passada(K_FIXO, conjunto)
     colunas = st.columns(2)
     for col, res, nome in [(colunas[0], res_livre, f"Passada 1 — k livre = {k_livre}"),
                            (colunas[1], res_fixo, f"Passada 2 — k fixo = {K_FIXO}")]:
