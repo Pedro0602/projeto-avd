@@ -32,10 +32,10 @@ if not itens:
 kpis = {
     "Recorte": dc.descricao_filtros(),
     "Passageiros": str(len(filtrado)),
-    "Taxa de sobrevivência": f"{filtrado['Survived'].mean():.0%}" if len(filtrado) else "—",
+    "Taxa de transporte": f"{filtrado['Transported'].mean():.0%}" if len(filtrado) else "—",
 }
 html = dc.gerar_html_relatorio(dc.ler_nota("visao_geral"), kpis, itens)
-st.download_button("Baixar relatório (HTML)", html.encode("utf-8"), file_name="relatorio_titanic.html",
+st.download_button("Baixar relatório (HTML)", html.encode("utf-8"), file_name="relatorio_spaceship.html",
                    mime="text/html", icon=":material/download:", type="primary")
 
 for i, item in enumerate(itens):
