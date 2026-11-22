@@ -1,5 +1,5 @@
 # [IA] Claude – dados, filtros, notas e construtores de gráficos compartilhados pelo dashboard
-"""Funções compartilhadas pelas páginas do dashboard (Parte Específica — Titanic)."""
+"""Funções compartilhadas pelas páginas do dashboard (Parte Específica — Spaceship Titanic)."""
 from __future__ import annotations
 
 import sys
@@ -26,49 +26,55 @@ MARCA_PENDENTE = "PENDENTE"
 # ----------------------------------------------------------------------------
 # Rótulos, ordens e cores
 # ----------------------------------------------------------------------------
-ROTULO_SURV = {0: "Não sobreviveu", 1: "Sobreviveu"}
-CORES_SURV = {"Não sobreviveu": "#9aa5b1", "Sobreviveu": "#1f6feb"}
+ROTULO_ALVO = {0: "Não transportado", 1: "Transportado"}
+CORES_ALVO = {"Não transportado": "#9aa5b1", "Transportado": "#1f6feb"}
 COR_NEUTRA = "#c3cad3"
 COR_DESTAQUE = "#1f6feb"
 
 ROTULOS = {
-    "Survived": "Sobreviveu (0/1)",
-    "Sobrevivencia": "Sobrevivência",
-    "Pclass": "Classe",
-    "Sex": "Sexo",
+    "Transported": "Transportado (0/1)",
+    "Situacao": "Situação",
+    "HomePlanet": "Planeta de origem",
+    "CryoSleep": "Sono criogênico",
+    "Destination": "Destino",
     "Age": "Idade (anos)",
-    "SibSp": "Irmãos/cônjuges a bordo",
-    "Parch": "Pais/filhos a bordo",
-    "Fare": "Tarifa",
-    "Embarked": "Porto de embarque",
-    "Title": "Pronome de tratamento",
-    "FamilySize": "Tamanho da família",
-    "Deck": "Deck",
-    "Cabin_known": "Cabine registrada",
-    "Age_missing": "Idade ausente no original",
-    "TicketGroupSize": "Passageiros no mesmo bilhete",
-    "taxa": "Taxa de sobrevivência",
+    "AgeGroup": "Faixa etária",
+    "VIP": "VIP",
+    "RoomService": "Gasto em serviço de quarto",
+    "FoodCourt": "Gasto na praça de alimentação",
+    "ShoppingMall": "Gasto no shopping",
+    "Spa": "Gasto no spa",
+    "VRDeck": "Gasto no deck de realidade virtual",
+    "TotalSpend": "Gasto total",
+    "AnySpend": "Gastou a bordo",
+    "GroupSize": "Tamanho do grupo",
+    "Solo": "Viaja sozinho",
+    "Deck": "Deck da cabine",
+    "CabinNum": "Número da cabine",
+    "Side": "Lado da nave",
+    "taxa": "Taxa de transporte",
     "n": "Nº de passageiros",
 }
 
-NUMERICAS = ["Age", "Fare", "SibSp", "Parch", "FamilySize", "TicketGroupSize"]
-CATEGORICAS = ["Sobrevivencia", "Pclass", "Sex", "Embarked", "Title", "Deck", "Cabin_known", "Age_missing"]
+NUMERICAS = ["Age", "RoomService", "FoodCourt", "ShoppingMall", "Spa", "VRDeck", "TotalSpend", "GroupSize", "CabinNum"]
+CATEGORICAS = ["Situacao", "HomePlanet", "CryoSleep", "Destination", "VIP", "Deck", "Side", "AgeGroup", "Solo", "AnySpend"]
 
+D = dd.DESCONHECIDO
 ORDENS = {
-    "Sobrevivencia": ["Não sobreviveu", "Sobreviveu"],
-    "Pclass": ["1", "2", "3"],
-    "Sex": ["female", "male"],
-    "Embarked": ["C", "Q", "S"],
-    "Title": ["Master", "Miss", "Mr", "Mrs", "Raro"],
-    "Deck": ["A", "B", "C", "D", "E", "F", "G", "T", "Desconhecido"],
-    "Cabin_known": ["Não", "Sim"],
-    "Age_missing": ["Não", "Sim"],
+    "Situacao": ["Não transportado", "Transportado"],
+    "HomePlanet": ["Earth", "Europa", "Mars", D],
+    "CryoSleep": ["Não", "Sim", D],
+    "Destination": ["TRAPPIST-1e", "55 Cancri e", "PSO J318.5-22", D],
+    "VIP": ["Não", "Sim", D],
+    "Deck": ["A", "B", "C", "D", "E", "F", "G", "T", D],
+    "Side": ["Bombordo", "Estibordo", D],
+    "AgeGroup": dd.FAIXAS_IDADE,
+    "Solo": ["Não", "Sim"],
+    "AnySpend": ["Não", "Sim"],
 }
 
 FORMATO_OPCOES = {
-    "Pclass": {"1": "1ª classe", "2": "2ª classe", "3": "3ª classe"},
-    "Sex": {"female": "Feminino", "male": "Masculino"},
-    "Embarked": {"C": "Cherbourg", "Q": "Queenstown", "S": "Southampton"},
+    "HomePlanet": {"Earth": "Terra", "Europa": "Europa", "Mars": "Marte"},
 }
 
 
@@ -77,7 +83,7 @@ def rotulo(col: str) -> str:
 
 
 def formatar(col: str, valor) -> str:
-    """Rótulo legível de uma categoria (ex.: Pclass '1' -> '1ª classe')."""
+    """Rótulo legível de uma categoria (ex.: HomePlanet 'Earth' -> 'Terra')."""
     return FORMATO_OPCOES.get(col, {}).get(str(valor), str(valor))
 
 
@@ -90,20 +96,8 @@ def carregar() -> pd.DataFrame:
     if dd.CAMINHO_TRATADO.exists():
         df = dd.carregar_tratado()
     else:
-        df = dd.tratar(dd.carregar_bruto(), "mediana_titulo")
-    df["Sobrevivencia"] = df["Survived"].map(ROTULO_SURV)
-    df["Pclass"] = df["Pclass"].astype(str)
-    for col in ("Cabin_known", "Age_missing"):
-        df[col] = df[col].map({0: "Não", 1: "Sim"})
-    return df
-
-
-@st.cache_data
-def carregar_bruto() -> pd.DataFrame:
-    """Dataset original + variáveis derivadas (com os faltantes preservados)."""
-    df = dd.adicionar_derivadas(dd.carregar_bruto())
-    df["Pclass"] = df["Pclass"].astype(str)
-    df["Sobrevivencia"] = df["Survived"].map(ROTULO_SURV)
+        df = dd.tratar(dd.carregar_bruto(), "mediana_planeta")
+    df["Situacao"] = df["Transported"].map(ROTULO_ALVO)
     return df
 
 
@@ -111,9 +105,10 @@ def carregar_bruto() -> pd.DataFrame:
 # Filtros globais (barra lateral), persistentes entre páginas
 # ----------------------------------------------------------------------------
 FILTROS_PILLS = {
-    "f_pclass": ("Classe", "Pclass"),
-    "f_sex": ("Sexo", "Sex"),
-    "f_embarked": ("Porto de embarque", "Embarked"),
+    "f_planeta": ("Planeta de origem", "HomePlanet"),
+    "f_cryo": ("Sono criogênico", "CryoSleep"),
+    "f_destino": ("Destino", "Destination"),
+    "f_vip": ("VIP", "VIP"),
 }
 
 
@@ -143,7 +138,7 @@ def filtros_sidebar(df: pd.DataFrame) -> None:
                 ORDENS[col],
                 selection_mode="multi",
                 key=key,
-                format_func=lambda v, c=col: FORMATO_OPCOES[c].get(v, v),
+                format_func=lambda v, c=col: formatar(c, v),
                 on_change=_guardar,
                 args=(key,),
             )
@@ -165,7 +160,7 @@ def filtros_sidebar(df: pd.DataFrame) -> None:
             args=(idade_padrao,),
             width="stretch",
         )
-        st.caption("Os filtros valem para todas as páginas do Titanic. Nenhuma opção marcada = todas.")
+        st.caption("Os filtros valem para todas as páginas do Spaceship Titanic. Nenhuma opção marcada = todas.")
 
 
 def _valor(key: str, padrao):
@@ -189,7 +184,7 @@ def descricao_filtros() -> str:
     for key, (titulo, col) in FILTROS_PILLS.items():
         sel = _valor(key, ORDENS[col]) or ORDENS[col]
         if set(sel) != set(ORDENS[col]):
-            partes.append(f"{titulo}: " + ", ".join(FORMATO_OPCOES[col].get(v, v) for v in sel))
+            partes.append(f"{titulo}: " + ", ".join(formatar(col, v) for v in sel))
     idade = _valor("f_idade", None)
     completo = carregar()["Age"]
     if idade is not None and (idade[0] > completo.min() or idade[1] < completo.max()):
@@ -251,12 +246,12 @@ def gerar_html_relatorio(cabecalho_md: str | None, kpis: dict[str, str], itens: 
 
     partes = [
         "<!doctype html><html lang='pt-br'><head><meta charset='utf-8'>",
-        "<title>Relatório — Titanic</title>",
+        "<title>Relatório — Spaceship Titanic</title>",
         "<style>body{font-family:system-ui,sans-serif;max-width:1000px;margin:2rem auto;padding:0 1rem;color:#1f2328}"
         "table{border-collapse:collapse}td,th{border:1px solid #d0d7de;padding:.4rem .8rem}"
         ".nota{background:#f6f8fa;border-left:4px solid #1f6feb;padding:.6rem 1rem;margin:.5rem 0 2rem}"
         ".filtros{color:#57606a;font-size:.9rem}</style></head><body>",
-        "<h1>Relatório — Titanic</h1>",
+        "<h1>Relatório — Spaceship Titanic</h1>",
         f"<p class='filtros'>Gerado em {datetime.now():%d/%m/%Y %H:%M}</p>",
     ]
     if cabecalho_md:
@@ -304,29 +299,29 @@ def _ordem(df: pd.DataFrame, col: str) -> list:
     return sorted(df[col].dropna().unique())
 
 
-def histograma(df: pd.DataFrame, x: str, por_sobrevivencia: bool = True, percentual: bool = False,
-               titulo: str | None = None) -> go.Figure:
+def histograma(df: pd.DataFrame, x: str, por_situacao: bool = True, percentual: bool = False,
+               log_y: bool = False, titulo: str | None = None) -> go.Figure:
     fig = px.histogram(
         df, x=x,
-        color="Sobrevivencia" if por_sobrevivencia else None,
-        color_discrete_map=CORES_SURV,
-        category_orders={"Sobrevivencia": ORDENS["Sobrevivencia"]},
-        barmode="overlay", opacity=0.75 if por_sobrevivencia else 1,
+        color="Situacao" if por_situacao else None,
+        color_discrete_map=CORES_ALVO,
+        category_orders={"Situacao": ORDENS["Situacao"]},
+        barmode="overlay", opacity=0.75 if por_situacao else 1,
         histnorm="percent" if percentual else None,
-        labels=ROTULOS,
+        log_y=log_y, labels=ROTULOS,
     )
     fig.update_yaxes(title="% de passageiros" if percentual else "Nº de passageiros")
     return _layout(fig, titulo or f"Distribuição de {rotulo(x).lower()}")
 
 
-def barras_contagem(df: pd.DataFrame, x: str, por_sobrevivencia: bool = True,
+def barras_contagem(df: pd.DataFrame, x: str, por_situacao: bool = True,
                     titulo: str | None = None) -> go.Figure:
     dados = df.assign(**{x: df[x].astype(str)})
     fig = px.histogram(
         dados, x=x,
-        color="Sobrevivencia" if por_sobrevivencia else None,
-        color_discrete_map=CORES_SURV,
-        category_orders={x: [str(v) for v in _ordem(df, x)], "Sobrevivencia": ORDENS["Sobrevivencia"]},
+        color="Situacao" if por_situacao else None,
+        color_discrete_map=CORES_ALVO,
+        category_orders={x: [str(v) for v in _ordem(df, x)], "Situacao": ORDENS["Situacao"]},
         barmode="group", labels=ROTULOS, text_auto=True,
     )
     fig.update_yaxes(title="Nº de passageiros")
@@ -334,13 +329,13 @@ def barras_contagem(df: pd.DataFrame, x: str, por_sobrevivencia: bool = True,
     return _layout(fig, titulo or f"Passageiros por {rotulo(x).lower()}")
 
 
-def taxa_sobrevivencia(df: pd.DataFrame, x: str, destacar: list | None = None,
+def taxa_transporte(df: pd.DataFrame, x: str, destacar: list | None = None,
                        titulo: str | None = None) -> go.Figure:
-    """Barras com a taxa de sobrevivência por categoria de `x`.
+    """Barras com a taxa de transporte por categoria de `x`.
 
     `destacar`: categorias pintadas com a cor de destaque (as demais ficam neutras).
     """
-    g = df.groupby(x, observed=True)["Survived"].agg(taxa="mean", n="size").reset_index()
+    g = df.groupby(x, observed=True)["Transported"].agg(taxa="mean", n="size").reset_index()
     ordem = _ordem(df, x)
     g[x] = pd.Categorical(g[x], categories=ordem, ordered=True)
     g = g.sort_values(x)
@@ -356,20 +351,20 @@ def taxa_sobrevivencia(df: pd.DataFrame, x: str, destacar: list | None = None,
         textposition="outside",
         hovertemplate="%{x}<br>Taxa: %{y:.1%}<extra></extra>",
     ))
-    media = df["Survived"].mean()
+    media = df["Transported"].mean()
     fig.add_hline(y=media, line_dash="dash", line_color="#57606a",
                   annotation_text=f"Média do<br>recorte: {media:.0%}", annotation_position="right",
                   annotation_font_color="#57606a")
     fig.update_xaxes(title=rotulo(x), type="category", tickvals=categorias,
                      ticktext=[formatar(x, c) for c in categorias])
-    fig.update_yaxes(title="Taxa de sobrevivência", tickformat=".0%", range=[0, 1.15])
+    fig.update_yaxes(title="Taxa de transporte", tickformat=".0%", range=[0, 1.15])
     fig.update_layout(margin=dict(r=110))
-    return _layout(fig, titulo or f"Taxa de sobrevivência por {rotulo(x).lower()}")
+    return _layout(fig, titulo or f"Taxa de transporte por {rotulo(x).lower()}")
 
 
 def taxa_dois_fatores(df: pd.DataFrame, linhas: str, colunas: str, titulo: str | None = None) -> go.Figure:
-    taxa = df.pivot_table(index=linhas, columns=colunas, values="Survived", aggfunc="mean", observed=True)
-    n = df.pivot_table(index=linhas, columns=colunas, values="Survived", aggfunc="size", observed=True)
+    taxa = df.pivot_table(index=linhas, columns=colunas, values="Transported", aggfunc="mean", observed=True)
+    n = df.pivot_table(index=linhas, columns=colunas, values="Transported", aggfunc="size", observed=True)
     taxa = taxa.reindex(index=_ordem(df, linhas), columns=_ordem(df, colunas))
     n = n.reindex_like(taxa)
     texto = [[("" if pd.isna(t) else f"{t:.0%}<br>n={int(c)}") for t, c in zip(lt, lc)]
@@ -384,43 +379,43 @@ def taxa_dois_fatores(df: pd.DataFrame, linhas: str, colunas: str, titulo: str |
     fig.update_xaxes(title=rotulo(colunas), type="category", tickvals=xs, ticktext=[formatar(colunas, v) for v in xs])
     fig.update_yaxes(title=rotulo(linhas), type="category", autorange="reversed",
                      tickvals=ys, ticktext=[formatar(linhas, v) for v in ys])
-    return _layout(fig, titulo or f"Taxa de sobrevivência por {rotulo(linhas).lower()} × {rotulo(colunas).lower()}")
+    return _layout(fig, titulo or f"Taxa de transporte por {rotulo(linhas).lower()} × {rotulo(colunas).lower()}")
 
 
 def dispersao(df: pd.DataFrame, x: str, y: str, log_y: bool = False, titulo: str | None = None) -> go.Figure:
     fig = px.scatter(
-        df, x=x, y=y, color="Sobrevivencia", color_discrete_map=CORES_SURV,
-        category_orders={"Sobrevivencia": ORDENS["Sobrevivencia"]},
-        opacity=0.7, log_y=log_y, labels=ROTULOS, hover_data=["Name", "Pclass", "Sex"],
+        df, x=x, y=y, color="Situacao", color_discrete_map=CORES_ALVO,
+        category_orders={"Situacao": ORDENS["Situacao"]},
+        opacity=0.7, log_y=log_y, labels=ROTULOS, hover_data=["HomePlanet", "CryoSleep", "Destination"],
     )
     return _layout(fig, titulo or f"{rotulo(x)} × {rotulo(y)}")
 
 
-def boxplot(df: pd.DataFrame, x: str, y: str, por_sobrevivencia: bool = True, log_y: bool = False,
+def boxplot(df: pd.DataFrame, x: str, y: str, por_situacao: bool = True, log_y: bool = False,
             titulo: str | None = None) -> go.Figure:
     dados = df.assign(**{x: df[x].astype(str)})
     fig = px.box(
         dados, x=x, y=y,
-        color="Sobrevivencia" if por_sobrevivencia else None,
-        color_discrete_map=CORES_SURV,
-        category_orders={x: [str(v) for v in _ordem(df, x)], "Sobrevivencia": ORDENS["Sobrevivencia"]},
+        color="Situacao" if por_situacao else None,
+        color_discrete_map=CORES_ALVO,
+        category_orders={x: [str(v) for v in _ordem(df, x)], "Situacao": ORDENS["Situacao"]},
         log_y=log_y, labels=ROTULOS, points="outliers",
     )
     _rotular_x(fig, df, x)
     return _layout(fig, titulo or f"{rotulo(y)} por {rotulo(x).lower()}")
 
 
-def taxa_ausencia(bruto: pd.DataFrame, por: str, titulo: str | None = None) -> go.Figure:
-    dados = bruto.assign(Age_ausente=bruto["Age"].isna(), Cabin_ausente=bruto["Cabin"].isna())
-    g = dados.groupby(por, observed=True)[["Age_ausente", "Cabin_ausente"]].mean().reset_index()
+def taxa_ausencia(df: pd.DataFrame, por: str, variaveis: list[str], titulo: str | None = None) -> go.Figure:
+    """Proporção de valores ausentes no dado original, por categoria de `por`."""
+    colunas = {f"Falt_{v}": v for v in variaveis}
+    g = df.groupby(por, observed=True)[list(colunas)].mean().rename(columns=colunas).reset_index()
     g = g.melt(id_vars=por, var_name="Variável", value_name="ausencia")
-    g["Variável"] = g["Variável"].str.replace("_ausente", "")
     g[por] = g[por].astype(str)
     fig = px.bar(
         g, x=por, y="ausencia", color="Variável", barmode="group",
-        category_orders={por: [str(v) for v in _ordem(bruto, por)]},
-        color_discrete_sequence=["#1f6feb", "#d1242f"], labels={**ROTULOS, "ausencia": "Proporção ausente"},
-        text_auto=".0%",
+        category_orders={por: [str(v) for v in _ordem(df, por)]},
+        labels={**ROTULOS, "ausencia": "Proporção ausente"},
     )
-    fig.update_yaxes(tickformat=".0%", range=[0, 1.05])
+    fig.update_yaxes(tickformat=".1%", rangemode="tozero")
+    _rotular_x(fig, df, por)
     return _layout(fig, titulo or f"Proporção de valores ausentes por {rotulo(por).lower()}")
