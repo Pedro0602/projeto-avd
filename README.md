@@ -89,6 +89,7 @@ jupyter notebook notebooks/parte_comum/kmeans_metricas.ipynb
 python -m src.parte_comum.kmeans --modo livre --out ./out/parte_comum/          # k pelo cotovelo
 python -m src.parte_comum.kmeans --modo livre --k 4 --out ./out/parte_comum/    # k escolhido pelo grupo
 python -m src.parte_comum.kmeans --modo fixo --out ./out/parte_comum/           # k = 7 classes
+python -m src.parte_comum.kmeans --modo fixo --variaveis todas --out ./out/parte_comum/  # inclui as categóricas
 
 # Parte Específica
 jupyter notebook src/parte_especifica/eda.ipynb
