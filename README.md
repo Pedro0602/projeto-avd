@@ -5,7 +5,7 @@ Análise e Visualização de Dados (AVD) — 2026.2
 | Parte | Dataset |
 |---|---|
 | Comum | [Obesity (UCI 544)](https://archive.ics.uci.edu/dataset/544) |
-| Específica | [Spaceship Titanic (Kaggle)](https://www.kaggle.com/competitions/spaceship-titanic/data), licença CC BY 4.0 |
+| Específica | [Spaceship Titanic (Kaggle)](https://www.kaggle.com/competitions/spaceship-titanic/data) |
 
 ## Integrantes
 
@@ -25,7 +25,7 @@ projeto-avd/
 ├─ CONTRIBUICAO.md            # matriz de contribuição
 ├─ data/
 │  ├─ parte_comum/            # ObesityDataSet_raw_and_data_sinthetic.csv
-│  └─ parte_especifica/       # Spaceship Titanic (script de preparação)
+│  └─ parte_especifica/       # CSVs do Spaceship Titanic
 ├─ out/
 │  ├─ parte_comum/
 │  └─ parte_especifica/
@@ -66,17 +66,17 @@ python -m src.parte_comum.baixar_dados
 
 O CSV é salvo em `data/parte_comum/`.
 
-**Parte Específica (Spaceship Titanic):** as regras da competição não permitem redistribuir os dados, por isso o CSV não fica no repositório.
-
-1. Entre em https://www.kaggle.com/competitions/spaceship-titanic/data e aceite as regras
-2. Baixe o ZIP (Download All)
-3. Rode:
+**Parte Específica (Spaceship Titanic):** o CSV fornecido pelo grupo deve ficar em
+`data/parte_especifica/spaceship_train.csv` (8.693 passageiros, 14 colunas). Se o arquivo não estiver
+disponível, baixe o ZIP da [competição Spaceship Titanic](https://www.kaggle.com/competitions/spaceship-titanic/data)
+e extraia-o com:
 
 ```bash
 python -m src.parte_especifica.preparar_dados caminho/para/spaceship-titanic.zip
 ```
 
-O notebook `src/parte_especifica/eda.ipynb` gera `spaceship_tratado.csv` (dataset tratado). Sem esse arquivo, o dashboard aplica o tratamento padrão.
+O notebook `src/parte_especifica/eda.ipynb` gera `spaceship_tratado.csv`. Sem esse arquivo, o dashboard aplica
+o tratamento padrão diretamente ao CSV original.
 
 ## Execução
 

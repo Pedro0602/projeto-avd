@@ -1,8 +1,7 @@
-<!-- PENDENTE: apague esta linha ao escrever -->
-**O que foi encontrado na exploração:** 
+**O que foi encontrado na exploração:** Na amostra de 8.693 passageiros, 50,4% foram transportados. Após o tratamento definido no notebook, o estado de criogenia apresenta uma associação marcante: 81,8% dos passageiros marcados como “Sim” foram transportados (n=3.037), contra 32,8% dos marcados como “Não” (n=5.558); 98 passageiros continuaram com criogenia desconhecida. Por planeta, as taxas foram 66,0% para Europa (n=2.161), 52,3% para Marte (n=1.787), 42,4% para Terra (n=4.634) e 47,7% para planeta desconhecido (n=111). Entre os passageiros em criogenia originários de Europa, a taxa foi 98,9% (n=927).
 
-**Que história os dados contam:** 
+**Que história os dados contam:** O status de criogenia divide os resultados com clareza: o grupo marcado como “Sim” aparece com uma taxa de transporte muito superior ao grupo “Não”. O planeta acrescenta contexto a esse padrão: entre quem está em criogenia, as taxas variam de 65,8% em Terra a 98,9% em Europa; entre quem não está, variam de 27,3% em Marte a 39,9% em Europa. Como se trata de uma análise observacional e há tratamento de valores ausentes, isso mostra associação e não prova que a criogenia ou o planeta causaram o transporte.
 
-**Por que essa mensagem é a mais relevante para o público:** 
+**Por que essa mensagem é a mais relevante para o público:** A pergunta de pesquisa investiga duas dimensões de viagem disponíveis no arquivo e o cruzamento mostra por que uma taxa geral de 50,4% não resume os diferentes grupos. Para quem está aprendendo análise de dados, a comparação destaca a utilidade de combinar variáveis e de considerar o tamanho de cada grupo.
 
-**Atributos pré-atentivos usados para destacá-la:** 
+**Atributos pré-atentivos usados para destacá-la:** O primeiro gráfico usa intensidade de azul em uma matriz: células com taxas mais altas chamam atenção, enquanto a escala fixa de 0 a 100% permite comparações diretas. O percentual e o tamanho de cada grupo aparecem em cada célula para evitar ler taxas sem contexto. No segundo gráfico, o grupo em criogenia fica azul e as demais categorias, neutras; a linha pontilhada marca a média geral de 50,4%.

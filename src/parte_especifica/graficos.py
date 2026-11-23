@@ -39,6 +39,22 @@ EXPLORATORIAS: list[Grafico] = [
 ]
 
 EXPLANATORIAS: list[Grafico] = [
-    # Grafico("expl_1", lambda df: ...),
-    # Grafico("expl_2", lambda df: ...),
+    Grafico(
+        "expl_1",
+        lambda df: taxa_dois_fatores(
+            df,
+            linhas="CryoSleep",
+            colunas="HomePlanet",
+            titulo="Taxa de transporte por criogenia e planeta de origem",
+        ),
+    ),
+    Grafico(
+        "expl_2",
+        lambda df: taxa_transporte(
+            df,
+            x="CryoSleep",
+            destacar=["Sim"],
+            titulo="Passageiros em criogenia foram transportados com maior frequência",
+        ),
+    ),
 ]

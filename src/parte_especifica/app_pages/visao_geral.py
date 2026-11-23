@@ -34,8 +34,7 @@ with st.container(horizontal=True):
 with st.container(border=True):
     st.markdown(":material/dataset: **Sobre os dados**")
     st.markdown(
-        "- Fonte: [Spaceship Titanic (Kaggle)](https://www.kaggle.com/competitions/spaceship-titanic/data), "
-        "licença CC BY 4.0\n"
+        "- Fonte: [Spaceship Titanic (Kaggle)](https://www.kaggle.com/competitions/spaceship-titanic/data)\n"
         "- 8.693 linhas e 14 colunas originais, mais variáveis derivadas de grupo, cabine, gastos e idade\n"
         "- Tratamento de faltantes descrito em `src/parte_especifica/eda.ipynb` (nenhuma linha removida)"
     )

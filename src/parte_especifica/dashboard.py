@@ -40,8 +40,8 @@ pagina = st.navigation({"Spaceship Titanic": PAGINAS_ESPECIFICA, "Parte comum": 
 
 if pagina in PAGINAS_ESPECIFICA:
     if not dc.dd.CAMINHO_BRUTO.exists():
-        st.error("Baixe o ZIP em kaggle.com/competitions/spaceship-titanic/data e rode: "
-                 "`python -m src.parte_especifica.preparar_dados <caminho do ZIP>`",
+        st.error("Coloque o `train.csv` em `data/parte_especifica/spaceship_train.csv` ou extraia o ZIP com "
+                 "`python -m src.parte_especifica.preparar_dados <caminho do ZIP>`.",
                  title="Dataset não encontrado", icon=":material/error:")
         st.stop()
     dc.filtros_sidebar(dc.carregar())

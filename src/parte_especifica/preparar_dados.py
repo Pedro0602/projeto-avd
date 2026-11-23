@@ -1,11 +1,10 @@
 # [IA] Claude – extrai o train.csv do ZIP da competição para a pasta de dados
 """Prepara o dataset Spaceship Titanic.
 
-As regras da competição não permitem redistribuir os dados, por isso o CSV não fica no repositório.
+Use este utilitário quando o CSV local não estiver disponível.
 
-1. Entre em https://www.kaggle.com/competitions/spaceship-titanic/data e aceite as regras
-2. Baixe o ZIP (Download All)
-3. Rode: python -m src.parte_especifica.preparar_dados caminho/para/spaceship-titanic.zip
+1. Baixe o ZIP em https://www.kaggle.com/competitions/spaceship-titanic/data
+2. Rode: python -m src.parte_especifica.preparar_dados caminho/para/spaceship-titanic.zip
 """
 import argparse
 import zipfile
