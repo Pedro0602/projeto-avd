@@ -1,6 +1,1 @@
-<!-- PENDENTE: apague esta linha ao escrever -->
-**Objetivo do projeto:** 
-
-**Datasets usados e por quê:** 
-
-**Como o relatório está organizado:** 
+O projeto tem como objetivo explorar, visualizar e identificar padrões em dados, aplicando análise exploratória e técnicas de agrupamento. Na Parte Comum foi utilizado o dataset de níveis de obesidade da UCI e, na Parte Específica, o dataset Spaceship Titanic, do Kaggle, analisando a relação entre criogenia, planeta de origem e transporte dos passageiros.
