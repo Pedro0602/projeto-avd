@@ -11,10 +11,10 @@ Análise e Visualização de Dados (AVD) — 2026.2
 
 | Nome | GitHub |
 |---|---|
-|  |  |
-|  |  |
-|  |  |
-|  |  |
+| Pedro Henrique | [Pedro0602](https://github.com/Pedro0602) |
+| Henrique |  |
+| João Lucas |  |
+| Thiago |  |
 
 ## Estrutura
 
