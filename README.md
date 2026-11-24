@@ -118,6 +118,22 @@ Os filtros da barra lateral (planeta, sono criogênico, destino, VIP, idade) val
 - `src/parte_especifica/notas/*.md` — notas analíticas, pergunta de pesquisa, público-alvo e storytelling
   (apagar a linha `<!-- PENDENTE ... -->` ao preencher)
 
+## Relatório
+
+O script junta os textos escritos pelo grupo (notebooks e `src/parte_especifica/notas/`) e os gráficos. Ele não escreve análise. Precisa do Chrome ou do Edge.
+
+```bash
+# Rascunho em out/relatorio_rascunho.pdf, com as pendências em vermelho
+python -m src.gerar_relatorio
+```
+
+```bash
+# Versão final em relatorio.pdf (só gera se não houver pendências)
+python -m src.gerar_relatorio --final
+```
+
+Nas células de análise, mantenham `Análise do grupo:` no início e apaguem `_(preencher)_`.
+
 ## Uso de IA
 
 Trechos de código feitos com apoio de IA estão marcados com `# [IA] <ferramenta> – <finalidade>`.

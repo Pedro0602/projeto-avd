@@ -8,3 +8,6 @@ venv/
 
 # Dados da competição Spaceship Titanic (as regras proíbem redistribuir)
 data/parte_especifica/spaceship_*.csv
+
+# Rascunho do relatório
+out/relatorio_rascunho.pdf
