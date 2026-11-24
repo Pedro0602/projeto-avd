@@ -1,6 +1,5 @@
-<!-- PENDENTE: apague esta linha ao escrever -->
-**Resposta à pergunta de pesquisa:** 
+A análise do Spaceship Titanic mostrou que o estado de criogenia possui uma associação forte com o transporte. Entre os passageiros em criogenia, 81,8% foram transportados, enquanto entre os que não estavam a taxa foi de 32,8%. O planeta também apresentou diferenças: Europa teve a maior taxa geral, com 66%, e os passageiros de Europa em criogenia chegaram a 98,9%. Esses resultados mostram associação, mas não provam que a criogenia ou o planeta causaram o transporte.
 
-**Principais aprendizados da Parte Comum:** 
+Na Parte Comum, aprendemos a analisar a estrutura, as distribuições, as relações e os outliers de um dataset. Também aprendemos que o K-Means precisa de padronização e que os grupos encontrados pelo algoritmo não são necessariamente iguais às classes reais. Com sete grupos, a acurácia foi de aproximadamente 38,8%, mostrando que as sete classes de obesidade não foram reproduzidas perfeitamente somente pelas variáveis usadas no agrupamento.
 
-**Limitações da análise:** 
+As principais limitações são que 77% dos dados de obesidade são sintéticos, existem duplicatas e as classes dependem muito do peso. No Spaceship Titanic, existem valores faltantes que precisaram ser tratados, e algumas categorias continuaram desconhecidas. Além disso, o dataset é fictício e a análise é observacional, portanto os resultados representam associações e não relações de causa e efeito.
