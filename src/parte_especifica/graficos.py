@@ -28,14 +28,46 @@ from src.parte_especifica.dash_comum import (  # noqa: F401
     dispersao,
     histograma,
     taxa_dois_fatores,
+    taxa_ausencia,
     taxa_transporte,
 )
 
 EXPLORATORIAS: list[Grafico] = [
-    # Grafico("exp_1", lambda df: ...),
-    # Grafico("exp_2", lambda df: ...),
-    # Grafico("exp_3", lambda df: ...),
-    # Grafico("exp_4", lambda df: ...),
+    Grafico(
+        "exp_1",
+        lambda df: barras_contagem(
+            df,
+            x="Situacao",
+            por_situacao=False,
+            titulo="Distribuição do resultado de transporte",
+        ),
+    ),
+    Grafico(
+        "exp_2",
+        lambda df: taxa_transporte(
+            df,
+            x="Destination",
+            titulo="Taxa de transporte por destino",
+        ),
+    ),
+    Grafico(
+        "exp_3",
+        lambda df: histograma(
+            df,
+            x="Age",
+            percentual=True,
+            titulo="Distribuição da idade tratada por resultado",
+        ),
+    ),
+    Grafico(
+        "exp_4",
+        lambda df: taxa_ausencia(
+            df,
+            por="Situacao",
+            variaveis=["Age", "CryoSleep", "Cabin", "VIP"],
+            titulo="Valores ausentes no arquivo original por resultado",
+        ),
+    ),
 ]
 
 EXPLANATORIAS: list[Grafico] = [

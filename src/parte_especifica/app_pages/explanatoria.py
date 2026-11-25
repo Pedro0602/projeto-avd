@@ -8,6 +8,11 @@ df = dc.carregar()
 filtrado = dc.aplicar_filtros(df)
 
 st.title("Explanatória", anchor=False)
+st.caption(
+    "Os gráficos usam a base tratada, inclusive valores de criogenia inferidos e planetas "
+    "preenchidos pelas regras da EDA. As notas apresentam os números da base completa, sem filtros; "
+    "as taxas nos gráficos mudam conforme os filtros selecionados."
+)
 
 texto = dc.ler_nota("storytelling")
 if texto:

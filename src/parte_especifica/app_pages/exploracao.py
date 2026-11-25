@@ -10,6 +10,11 @@ filtrado = dc.aplicar_filtros(df)
 
 st.title("Exploração", anchor=False)
 st.caption(f"{len(filtrado)} passageiros · {dc.descricao_filtros()}")
+st.caption(
+    "Os gráficos usam a base tratada. Idades ausentes foram imputadas pela mediana por planeta; "
+    "gastos e categorias seguem as regras descritas na EDA. O gráfico de valores ausentes usa "
+    "indicadores capturados do CSV original antes do tratamento."
+)
 
 if filtrado.empty:
     st.warning("Nenhum passageiro no recorte atual. Ajuste os filtros.")
