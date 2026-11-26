@@ -118,6 +118,31 @@ Os filtros da barra lateral (planeta, sono criogênico, destino, VIP, idade) val
 - `src/parte_especifica/notas/*.md` — notas analíticas, pergunta de pesquisa, público-alvo e storytelling
   (apagar a linha `<!-- PENDENTE ... -->` ao preencher)
 
+## Rodar em outro computador (ex.: na apresentação)
+
+O dashboard roda no computador, não fica publicado na internet.
+
+1. Clone o repositório em uma pasta curta, como `C:vd`. Pastas muito longas podem fazer o `pip` falhar no Windows.
+2. Crie e ative o ambiente, depois instale as bibliotecas (precisa de internet):
+
+```bash
+python -m venv .venv
+.venv\Scriptsctivate
+pip install -r requirements.txt
+```
+
+3. Prepare o dataset com o ZIP do Kaggle (leve o ZIP num pendrive ou baixe no Kaggle):
+
+```bash
+python -m src.parte_especifica.preparar_dados caminho/para/spaceship-titanic.zip
+```
+
+4. Abra o dashboard. Ele aparece em http://localhost:8501:
+
+```bash
+streamlit run src/parte_especifica/dashboard.py
+```
+
 ## Relatório
 
 O script junta os textos escritos pelo grupo (notebooks e `src/parte_especifica/notas/`) e os gráficos. Ele não escreve análise. Precisa do Chrome ou do Edge.
