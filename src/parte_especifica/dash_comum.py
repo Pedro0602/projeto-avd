@@ -304,7 +304,7 @@ def histograma(df: pd.DataFrame, x: str, por_situacao: bool = True, percentual: 
     fig = px.histogram(
         df, x=x,
         color="Situacao" if por_situacao else None,
-        color_discrete_map=CORES_ALVO,
+        color_discrete_map=CORES_ALVO, color_discrete_sequence=[COR_DESTAQUE],
         category_orders={"Situacao": ORDENS["Situacao"]},
         barmode="overlay", opacity=0.75 if por_situacao else 1,
         histnorm="percent" if percentual else None,
@@ -320,7 +320,7 @@ def barras_contagem(df: pd.DataFrame, x: str, por_situacao: bool = True,
     fig = px.histogram(
         dados, x=x,
         color="Situacao" if por_situacao else None,
-        color_discrete_map=CORES_ALVO,
+        color_discrete_map=CORES_ALVO, color_discrete_sequence=[COR_DESTAQUE],
         category_orders={x: [str(v) for v in _ordem(df, x)], "Situacao": ORDENS["Situacao"]},
         barmode="group", labels=ROTULOS, text_auto=True,
     )
@@ -397,7 +397,7 @@ def boxplot(df: pd.DataFrame, x: str, y: str, por_situacao: bool = True, log_y: 
     fig = px.box(
         dados, x=x, y=y,
         color="Situacao" if por_situacao else None,
-        color_discrete_map=CORES_ALVO,
+        color_discrete_map=CORES_ALVO, color_discrete_sequence=[COR_DESTAQUE],
         category_orders={x: [str(v) for v in _ordem(df, x)], "Situacao": ORDENS["Situacao"]},
         log_y=log_y, labels=ROTULOS, points="outliers",
     )
