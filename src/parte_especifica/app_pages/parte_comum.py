@@ -60,7 +60,8 @@ else:
                            (colunas[1], res_fixo, f"Passada 2 — k fixo = {K_FIXO}")]:
         with col, st.container(border=True):
             st.subheader(nome, anchor=False)
-            st.metric("Acurácia (cluster mapeado × classe real)", f"{res['acuracia']:.1%}")
+            st.metric("Acurácia (cluster mapeado × classe real)", f"{res['acuracia']:.1%}".replace(".", ","),
+                      border=True)
             st.plotly_chart(dk.fig_matriz(res["matriz"], "Matriz de confusão"), key=f"mat_{nome}",
                             alt=f"Matriz de confusão da {nome}")
             st.dataframe(

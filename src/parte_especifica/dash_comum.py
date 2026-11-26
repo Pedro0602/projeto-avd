@@ -283,8 +283,16 @@ class Grafico:
 # Construtores de gráficos (o grupo usa em graficos.py; o explorador livre também)
 # ----------------------------------------------------------------------------
 def _layout(fig: go.Figure, titulo: str) -> go.Figure:
-    fig.update_layout(title=titulo, margin=dict(t=60, b=40), legend_title_text=None)
+    fig.update_layout(title=titulo, margin=dict(t=60, b=40), legend_title_text=None, separators=SEPARADORES)
     return fig
+
+
+SEPARADORES = ",."  # números no padrão brasileiro nos gráficos: 50,4% e 5.915
+
+
+def n_fmt(n: int) -> str:
+    """Contagem com ponto de milhar (5915 -> 5.915)."""
+    return f"{int(n):,}".replace(",", ".")
 
 
 def _rotular_x(fig: go.Figure, df: pd.DataFrame, x: str) -> None:
@@ -344,15 +352,17 @@ def taxa_transporte(df: pd.DataFrame, x: str, destacar: list | None = None,
         alvo = {str(v) for v in destacar}
         cores = [COR_DESTAQUE if c in alvo else COR_NEUTRA for c in categorias]
     else:
-        cores = COR_DESTAQUE
+        cores = [COR_DESTAQUE] * len(categorias)
     fig = go.Figure(go.Bar(
         x=categorias, y=g["taxa"], marker_color=cores,
-        text=[f"{t:.0%}<br>n={n}" for t, n in zip(g["taxa"], g["n"])],
-        textposition="outside",
+        text=[f"{t:.0%}<br>n={n_fmt(n)}" for t, n in zip(g["taxa"], g["n"])],
+        # rótulo dentro da barra, no topo: não fica em cima da linha da média
+        textposition="inside", insidetextanchor="end", textangle=0,
+        textfont_color=["#ffffff" if c == COR_DESTAQUE else "#1f2328" for c in cores],
         hovertemplate="%{x}<br>Taxa: %{y:.1%}<extra></extra>",
     ))
     media = df["Transported"].mean()
-    fig.add_hline(y=media, line_dash="dash", line_color="#57606a",
+    fig.add_hline(y=media, line_dash="dash", line_color="#57606a", layer="below",  # atrás das barras e rótulos
                   annotation_text=f"Média do<br>recorte: {media:.0%}", annotation_position="right",
                   annotation_font_color="#57606a")
     fig.update_xaxes(title=rotulo(x), type="category", tickvals=categorias,
@@ -367,7 +377,7 @@ def taxa_dois_fatores(df: pd.DataFrame, linhas: str, colunas: str, titulo: str |
     n = df.pivot_table(index=linhas, columns=colunas, values="Transported", aggfunc="size", observed=True)
     taxa = taxa.reindex(index=_ordem(df, linhas), columns=_ordem(df, colunas))
     n = n.reindex_like(taxa)
-    texto = [[("" if pd.isna(t) else f"{t:.0%}<br>n={int(c)}") for t, c in zip(lt, lc)]
+    texto = [[("" if pd.isna(t) else f"{t:.0%}<br>n={n_fmt(c)}") for t, c in zip(lt, lc)]
              for lt, lc in zip(taxa.to_numpy(), n.to_numpy())]
     fig = go.Figure(go.Heatmap(
         z=taxa.to_numpy(), x=[str(c) for c in taxa.columns], y=[str(i) for i in taxa.index],

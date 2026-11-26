@@ -25,11 +25,12 @@ def seletor_grupo(prefixo: str, planeta: list[str]) -> pd.DataFrame:
         idade = st.slider("Idade", 0.0, 79.0, (0.0, 79.0), step=1.0, format="%.0f", key=f"cmp_{prefixo}_idade")
         mascara &= df["Age"].between(*idade)
         grupo = df[mascara]
-        st.metric("Passageiros", len(grupo))
-        if not grupo.empty:
-            st.metric("Taxa de transporte", f"{grupo['Transported'].mean():.0%}")
-            st.metric("Idade mediana", f"{grupo['Age'].median():.0f} anos")
-            st.metric("Gasto total mediano", f"{grupo['TotalSpend'].median():.0f}")
+        with st.container(horizontal=True):
+            st.metric("Passageiros", dc.n_fmt(len(grupo)), border=True)
+            if not grupo.empty:
+                st.metric("Taxa de transporte", f"{grupo['Transported'].mean():.0%}", border=True)
+                st.metric("Idade mediana", f"{grupo['Age'].median():.0f} anos", border=True)
+                st.metric("Gasto total mediano", f"{grupo['TotalSpend'].median():.0f}", border=True)
         return grupo
 
 
@@ -52,9 +53,10 @@ for nome, grupo, cor in [("Grupo A", grupo_a, "#1f6feb"), ("Grupo B", grupo_b, "
     g = grupo.groupby(var, observed=True)["Transported"].agg(taxa="mean", n="size").reset_index()
     g[var] = g[var].astype(str)
     fig.add_trace(go.Bar(x=g[var], y=g["taxa"], name=nome, marker_color=cor,
-                         text=[f"{t:.0%}<br>n={n}" for t, n in zip(g["taxa"], g["n"])], textposition="outside"))
+                         text=[f"{t:.0%}<br>n={dc.n_fmt(n)}" for t, n in zip(g["taxa"], g["n"])],
+                         textposition="outside"))
 fig.update_layout(title=f"Taxa de transporte por {dc.rotulo(var).lower()} — Grupo A × Grupo B",
-                  barmode="group", legend_title_text=None)
+                  barmode="group", legend_title_text=None, separators=dc.SEPARADORES)
 ordem = [str(v) for v in dc._ordem(df, var)]
 fig.update_xaxes(title=dc.rotulo(var), type="category", categoryorder="array", categoryarray=ordem,
                  tickvals=ordem, ticktext=[dc.formatar(var, v) for v in ordem])

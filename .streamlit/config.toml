@@ -1,5 +1,24 @@
+# Identidade visual do dashboard: azul como cor de destaque, cinza para o contexto.
 [theme]
+base = "light"
 primaryColor = "#1f6feb"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f6f8fa"
+textColor = "#1f2328"
+linkColor = "#0969da"
+borderColor = "#d0d7de"
+font = "'Source Sans 3':https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"
+headingFontWeights = [700, 700, 600, 600, 600, 600]
+baseRadius = "medium"
+showWidgetBorder = true
+showSidebarBorder = true
+metricValueFontWeight = 700
+# Mesma ordem de cores em todos os gráficos: azul (destaque), cinza (contexto) e depois as demais.
+chartCategoricalColors = ["#1f6feb", "#9aa5b1", "#bf8700", "#1a7f37", "#8250df", "#cf222e", "#57606a"]
+
+[theme.sidebar]
+backgroundColor = "#f0f4fa"
+secondaryBackgroundColor = "#ffffff"
 
 [server]
 runOnSave = true

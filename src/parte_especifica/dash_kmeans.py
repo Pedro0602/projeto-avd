@@ -40,7 +40,7 @@ def fig_cotovelo(curva: pd.DataFrame, k_escolhido: int, k_sugerido: int) -> go.F
     if k_sugerido != k_escolhido:
         fig.add_vline(x=k_sugerido, line_dash="dot", line_color="#57606a",
                       annotation_text=f"sugestão automática = {k_sugerido}", annotation_position="bottom left")
-    fig.update_layout(title="Método do Cotovelo (variáveis padronizadas)", showlegend=False)
+    fig.update_layout(title="Método do Cotovelo (variáveis padronizadas)", showlegend=False, separators=",.")
     fig.update_xaxes(title="Número de clusters (k)", dtick=1)
     fig.update_yaxes(title="Inércia (soma das distâncias quadradas)")
     return fig
@@ -92,9 +92,10 @@ def fig_transicao(sequencia: list[int | str], conjunto: str = "numericas") -> go
         )],
         margin=dict(b=120),
         height=620,
+        separators=",.",
     )
-    fig.update_xaxes(title=f"PC1 ({var[0]:.1%} da variância)")
-    fig.update_yaxes(title=f"PC2 ({var[1]:.1%} da variância)")
+    fig.update_xaxes(title=f"PC1 ({var[0]:.1%} da variância)".replace(".", ","))
+    fig.update_yaxes(title=f"PC2 ({var[1]:.1%} da variância)".replace(".", ","))
     return fig
 
 
@@ -105,7 +106,7 @@ def fig_matriz(matriz: pd.DataFrame, titulo: str) -> go.Figure:
         colorbar=dict(title="Pessoas"),
         hovertemplate="Real: %{y}<br>Mapeado: %{x}<br>%{z} pessoas<extra></extra>",
     ))
-    fig.update_layout(title=titulo, height=480)
+    fig.update_layout(title=titulo, height=480, separators=",.")
     fig.update_xaxes(title="Classe mapeada (majoritária do cluster)", tickangle=-35)
     fig.update_yaxes(title="Classe real", autorange="reversed")
     return fig
@@ -117,7 +118,7 @@ def fig_contingencia(tab: pd.DataFrame, titulo: str) -> go.Figure:
         text=tab.to_numpy(), texttemplate="%{text}", colorscale="Blues",
         colorbar=dict(title="Pessoas"),
     ))
-    fig.update_layout(title=titulo, height=120 + 45 * len(tab))
+    fig.update_layout(title=titulo, height=120 + 45 * len(tab), separators=",.")
     fig.update_xaxes(title="Classe real", tickangle=-35)
     fig.update_yaxes(title="Cluster", autorange="reversed")
     return fig
