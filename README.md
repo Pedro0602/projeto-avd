@@ -122,12 +122,12 @@ Os filtros da barra lateral (planeta, sono criogênico, destino, VIP, idade) val
 
 O dashboard roda no computador, não fica publicado na internet.
 
-1. Clone o repositório em uma pasta curta, como `C:vd`. Pastas muito longas podem fazer o `pip` falhar no Windows.
+1. Clone o repositório em uma pasta curta, como `C:\avd`. Pastas muito longas podem fazer o `pip` falhar no Windows.
 2. Crie e ative o ambiente, depois instale as bibliotecas (precisa de internet):
 
 ```bash
 python -m venv .venv
-.venv\Scriptsctivate
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
