@@ -106,7 +106,7 @@ def limpar_analise(fonte: str) -> str:
     """Tira a marcação do modelo e as perguntas-guia (linhas inteiras em itálico)."""
     if "(preencher)" in fonte:
         return ""
-    texto = re.sub(r"^\s*>?\s*✍️?\s*\*\*Análise do grupo:\*\*\s*", "", fonte, count=1)
+    texto = re.sub(r"^\s*>?\s*(?:✍️)?\s*(?:\*\*)?Análise do grupo:(?:\*\*)?\s*", "", fonte, count=1)
     linhas = [l for l in texto.splitlines() if not re.fullmatch(r"\s*(?:-\s*)?_[^_]+_\s*", l)]
     return "\n".join(linhas).strip()
 
