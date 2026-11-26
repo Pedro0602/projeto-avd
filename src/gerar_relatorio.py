@@ -67,7 +67,14 @@ code { font-family: Consolas, monospace; font-size: 9.5pt; background: #f0f3f6; 
 .aviso { border: 1.5px solid #d1242f; color: #a40e26; padding: 6pt; text-align: center; font-weight: 700; }
 .grafico { break-inside: avoid; margin: 8pt 0; }
 .nota { border-left: 3px solid #1f6feb; background: #f6f8fa; padding: 6pt 10pt; margin-bottom: 14pt; }
+.sumario { list-style: none; padding-left: 0; }
 .sumario li { margin-bottom: 2pt; }
+.sumario li.n1 { font-weight: 600; margin-top: 6pt; }
+.sumario li.n2 { padding-left: 16pt; }
+.legenda { font-size: 9.5pt; color: #57606a; text-align: center; margin: 8pt 0 2pt; }
+.referencias p { text-align: left; padding-left: 16pt; text-indent: -16pt; }
+pre { background: #f0f3f6; padding: 6pt 8pt; font-size: 9pt; white-space: pre-wrap; break-inside: avoid; }
+pre code { background: none; padding: 0; }
 """
 
 
@@ -75,6 +82,7 @@ class Relatorio:
     def __init__(self) -> None:
         self.partes: list[str] = []
         self.pendencias: list[str] = []
+        self.sumario: list[tuple[int, str]] = []
 
     def add(self, conteudo: str) -> None:
         self.partes.append(conteudo)
@@ -84,6 +92,8 @@ class Relatorio:
         self.add(f'<div class="pendente">PENDENTE: {html.escape(descricao)}</div>')
 
     def titulo(self, nivel: int, texto: str) -> None:
+        if nivel <= 2:
+            self.sumario.append((nivel, texto))
         self.add(f"<h{nivel}>{html.escape(texto)}</h{nivel}>")
 
     def nota(self, nome: str, descricao: str) -> None:
@@ -111,17 +121,29 @@ def limpar_analise(fonte: str) -> str:
     return "\n".join(linhas).strip()
 
 
-def adicionar_notebook(rel: Relatorio, chave: str) -> None:
+def adicionar_notebook(rel: Relatorio, chave: str, prefixo: str) -> None:
     nome, caminho, pasta, esperadas = NOTEBOOKS[chave]
     celulas = json.loads(caminho.read_text(encoding="utf-8"))["cells"]
     titulos: list[tuple[int, str]] = []  # só entram no PDF quando a seção tem conteúdo
     usados: set[str] = set()
     encontradas = 0
+    contador = {3: 0, 4: 0}  # renumera os títulos do notebook dentro da seção do relatório (ex.: 3.2.1)
 
     def descarregar() -> None:
         for nivel, texto in titulos:
-            rel.titulo(nivel, texto)
+            rel.titulo(nivel, numerar(nivel, texto))
         titulos.clear()
+
+    def numerar(nivel: int, texto: str) -> str:
+        """Numera só os títulos que entram no PDF, para não deixar buracos (ex.: 3.2.2 sem 3.2.1)."""
+        original = re.match(r"\d+(?:\.\d+)*\.?\s+", texto)
+        if not original:
+            return texto
+        contador[nivel] += 1
+        if nivel == 3:
+            contador[4] = 0
+            return f"{prefixo}.{contador[3]} {texto[original.end():]}"
+        return f"{prefixo}.{contador[3]}.{contador[4]} {texto[original.end():]}"
 
     for celula in celulas:
         fonte = "".join(celula["source"])
@@ -132,13 +154,22 @@ def adicionar_notebook(rel: Relatorio, chave: str) -> None:
                     usados.add(arquivo)
                     descarregar()
                     rel.add(f'<figure><img src="{imagem.as_uri()}" alt="{html.escape(arquivo)}"></figure>')
+            if "Com duplicatas" in fonte:  # tabela do teste de sensibilidade citada na análise dos outliers
+                for saida in celula.get("outputs", []):
+                    tabela = "".join(saida.get("data", {}).get("text/html", ""))
+                    if tabela:
+                        tabela = re.sub(r"<style.*?</style>", "", tabela, flags=re.S)
+                        tabela = re.sub(r"<tr>\s*<th>base</th>(\s*<th></th>)*\s*</tr>", "", tabela)  # linha do índice
+                        tabela = re.sub(r"<td>(0\.\d+)</td>",
+                                        lambda m: f"<td>{float(m.group(1)) * 100:.1f}%</td>".replace(".", ","), tabela)
+                        descarregar()
+                        rel.add('<p class="legenda">Teste: acurácia do K-Means com e sem as 24 duplicatas</p>' + tabela)
             continue
-        cabecalho = re.match(r"(#{2,3})\s+(.+)", fonte)
-        if cabecalho:
+        for cabecalho in re.finditer(r"^(#{2,3})\s+(.+)$", fonte, flags=re.M):  # pode haver vários na célula
             nivel = len(cabecalho.group(1)) + 1
             while titulos and titulos[-1][0] >= nivel:
                 titulos.pop()
-            titulos.append((nivel, cabecalho.group(2).split("\n")[0].replace("`", "")))
+            titulos.append((nivel, cabecalho.group(2).replace("`", "")))
         if MARCA_ANALISE in fonte:
             encontradas += 1
             descarregar()
@@ -156,7 +187,8 @@ def adicionar_notebook(rel: Relatorio, chave: str) -> None:
 def adicionar_graficos(rel: Relatorio, lista: list, prefixo: str, esperados: int, tipo: str, df) -> None:
     for g in lista:
         fig = g.criar(df)
-        fig.update_layout(width=650, height=400, template="plotly_white")  # cabe na largura útil do A4
+        fig.update_layout(width=650, height=400, template="plotly_white", font_family="Segoe UI, Arial, sans-serif",
+                          colorway=["#1f6feb", "#9aa5b1", "#bf8700", "#1a7f37"])  # cabe na largura útil do A4
         incluir_js = not getattr(rel, "plotly_incluido", False)
         rel.plotly_incluido = True
         rel.add('<div class="grafico">' + fig.to_html(full_html=False, include_plotlyjs=incluir_js,
@@ -177,6 +209,16 @@ def integrantes() -> list[str]:
     return [n for n in nomes if n and n != "Nome" and not set(n) <= {"-"}]
 
 
+def apendice_execucao() -> str:
+    """Reaproveita as seções de instalação, dados e execução do README."""
+    readme = (RAIZ / "README.md").read_text(encoding="utf-8")
+    trechos = []
+    for secao in ("Instalação", "Dados", "Execução", "Rodar em outro computador (ex.: na apresentação)"):
+        trecho = readme.split(f"\n## {secao}\n", 1)[-1].split("\n## ", 1)[0].strip()
+        trechos.append(f"### {secao.split(' (')[0]}\n\n{trecho}")
+    return "\n\n".join(trechos)
+
+
 def montar() -> tuple[str, list[str]]:
     logging.disable(logging.WARNING)  # o cache do Streamlit avisa quando roda fora do app
     from src.parte_especifica import dados as dd
@@ -188,23 +230,22 @@ def montar() -> tuple[str, list[str]]:
             "<p>Análise e Visualização de Dados (AVD) — 2026.2</p><br>"
             + "".join(f"<p><strong>{html.escape(n)}</strong></p>" for n in integrantes())
             + f"<br><p>{date.today():%d/%m/%Y}</p></div>")
-    rel.add('<!--AVISO--><h1>Sumário</h1><ol class="sumario"><li>Introdução</li><li>Parte Comum: Obesity</li>'
-            "<li>Parte Específica: Spaceship Titanic</li><li>Conclusão</li><li>Matriz de contribuição</li></ol>")
+    rel.add("<!--AVISO--><h1>Sumário</h1><!--SUMARIO-->")
 
     rel.titulo(1, "1. Introdução")
     rel.nota("introducao", "introdução")
 
     rel.titulo(1, "2. Parte Comum: Obesity")
     rel.titulo(2, "2.1 Análise exploratória")
-    adicionar_notebook(rel, "eda_comum")
+    adicionar_notebook(rel, "eda_comum", "2.1")
     rel.titulo(2, "2.2 K-Means, métricas e discussão crítica")
-    adicionar_notebook(rel, "kmeans")
+    adicionar_notebook(rel, "kmeans", "2.2")
 
     rel.titulo(1, "3. Parte Específica: Spaceship Titanic")
     rel.titulo(2, "3.1 Pergunta de pesquisa e público-alvo")
     rel.nota("visao_geral", "pergunta de pesquisa e público-alvo")
     rel.titulo(2, "3.2 Análise exploratória")
-    adicionar_notebook(rel, "eda_especifica")
+    adicionar_notebook(rel, "eda_especifica", "3.2")
     rel.titulo(2, "3.3 Storytelling")
     rel.nota("storytelling", "storytelling")
 
@@ -224,6 +265,18 @@ def montar() -> tuple[str, list[str]]:
     matriz = (RAIZ / "CONTRIBUICAO.md").read_text(encoding="utf-8").split("\n", 1)[1]
     rel.add(MD(matriz))
 
+    rel.titulo(1, "6. Uso de IA")
+    rel.add(MD((RAIZ / "src" / "textos_relatorio" / "uso_ia.md").read_text(encoding="utf-8")))
+
+    rel.titulo(1, "Referências")
+    rel.add('<div class="referencias">' + MD((RAIZ / "src" / "textos_relatorio" / "referencias.md")
+                                             .read_text(encoding="utf-8")) + "</div>")
+
+    rel.titulo(1, "Apêndice A — Como executar o projeto")
+    rel.add(MD(apendice_execucao()))
+
+    itens = "".join(f'<li class="n{nivel}">{html.escape(texto)}</li>' for nivel, texto in rel.sumario)
+    rel.partes[1] = rel.partes[1].replace("<!--SUMARIO-->", f'<ul class="sumario">{itens}</ul>')
     corpo = "\n".join(rel.partes)
     if rel.pendencias:
         aviso = f'<div class="aviso">RASCUNHO: {len(rel.pendencias)} pendência(s)</div>'
